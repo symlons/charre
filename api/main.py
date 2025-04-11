@@ -3,18 +3,13 @@ from http import HTTPStatus
 from flask import Flask, request
 from flask_cors import CORS
 
-from api.helpers import response_wrapper
-from api.models import Feedback
+from helpers import response_wrapper
+from models import Feedback
 
 app = Flask(__name__)
 
 # Allow cors origin source: https://stackoverflow.com/questions/25594893/how-to-enable-cors-in-flask
 cors = CORS(app, supports_credentials=True)
-
-@app.before_first_request
-def startup():
-    print("Starting up the server...")
-    # TODO: add mongodb creation
 
 
 @app.route('/api/v1/labels', methods=['GET'])

@@ -31,3 +31,19 @@ Start server:
 ```bash
 flask --app main.py --debug run
 ```
+
+### Containerization
+
+Build the container:
+
+```bash
+docker build -t feedback-api:latest .
+podman build -t feedback-api:latest .
+```
+
+Run the container:
+
+```bash
+docker run --name feedback-api -p 5000:5000 feedback-api:latest
+podman run --name feedback-api -p 5000:5000 feedback-api:latest
+```
