@@ -1,1 +1,4 @@
 kagglehub
+transformers
+PIL
+torch
