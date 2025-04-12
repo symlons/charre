@@ -26,3 +26,39 @@ sandbox = [
     "torch>=2.6.0",
     "transformers>=4.51.2",
 ]
+
+dev = [
+    "mypy>=1.15.0",
+    "poethepoet>=0.33.1",
+    "ruff>=0.11.5",
+]
+
+[tool.poe.tasks]
+format = {shell = "ruff format && ruff check --fix"}
+lint = {shell = "ruff check"}
+types = {shell = "mypy ."}
+all = {shell = "poe format && poe lint && poe types"}
+
+[tool.mypy]
+ignore_missing_imports = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+exclude = [".venv/", "tests/", "conftest.py"]
+
+[tool.ruff.lint]
+extend-ignore = ["E501"]
+select = [
+  # pycodestyle
+  "E",
+  # Pyflakes
+  "F",
+  # pyupgrade
+  "UP",
+  # flake8-bugbear
+  "B",
+  # flake8-simplify
+  "SIM",
+  # isort
+  "I",
+]
