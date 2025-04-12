@@ -9,8 +9,7 @@ uploaded_file = st.file_uploader("Choose a image...", type=["jpg", "jpeg", "png"
 
 if uploaded_file is not None:
 
-    st.image(uploaded_file, caption="Uploaded Image")
-    
+    st.image(uploaded_file, caption="Uploaded Image") 
     if st.button("Predict"):
         # Read file
         bytes_data = uploaded_file.getvalue()
@@ -27,10 +26,10 @@ if uploaded_file is not None:
         #    st.error("Failed to get a response from the model.")
         st.write("Predicted Brand: <Result from model>")
 
-
 st.header("Feedback")
 
-col1, col2 = st.columns([1, 1])
+# TODO fix that buttons are next to each other
+col1, col2 = st.columns(2)
 with col1:
     if st.button("👍", key="thumbs_up"):
         st.success("Thank you for your feedback!")
@@ -71,7 +70,6 @@ selected_brand = st.selectbox("What brand was the car?", list_brands, index=None
 
 if st.button("Submit Feedback") and selected_brand:
     # Functionality to handle feedback submission
-
     # TODO rest call to be defined
     # response = requests.post(url, selected_brand)
     #if response.status_code == 200:
