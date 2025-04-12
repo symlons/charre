@@ -1,6 +1,9 @@
 .vscode/
 .idea/
 
+# Data Directories
+sandbox/imgs/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
