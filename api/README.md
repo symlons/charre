@@ -24,12 +24,18 @@ python -m venv venv
 source venv/bin/activate
 
 pip install -r requirements.txt
+
+# or with uv
+uv sync --group api
 ```
 
 Start server:
 
 ```bash
-flask --app main.py --debug run
+python main.py
+
+# or with uv
+uv run python main.py
 ```
 
 ### Containerization
