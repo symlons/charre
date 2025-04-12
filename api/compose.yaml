@@ -1,0 +1,16 @@
+name: charre
+services:
+  mongo:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: mongo
+      MONGO_INITDB_ROOT_PASSWORD: mongo
+    volumes:
+      - mongo-data:/data/db
+      - mongo-data:/data/configdb
+
+volumes:
+  mongo-data:
