@@ -1,0 +1,20 @@
+meta {
+  name: Feedback
+  type: http
+  seq: 3
+}
+
+post {
+  url: http://localhost:5000/feedback
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "image": "bytearray",
+    "label": "audi",
+    "correct": true,
+    "correct_label": "audi"
+  }
+}
