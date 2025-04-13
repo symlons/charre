@@ -1,0 +1,90 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: charre-server 
+  namespace: losstracker
+spec:
+  selector:
+    matchLabels:
+      app: charre-server 
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: charre-server 
+    spec:
+      containers:
+        - image: registry.gitlab.com/fabio.kost/testd/feedback-api:latest
+          imagePullPolicy: Always
+          name: charre-server
+          ports:
+          - containerPort: 5001
+      imagePullSecrets:
+        - name: gitlabregcred
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: charre-server
+  namespace: losstracker
+spec:
+  selector:
+    app: charre-server 
+  ports:
+    - protocol: TCP
+      port: 5001
+      targetPort: 5001
+  type: ClusterIP
+
+---
+# Middleware to rewrite /api paths
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
+metadata:
+  name: charreapi
+  namespace: losstracker
+spec:
+  replacePathRegex:
+    regex: "^/charre/(.*)"
+    replacement: "/$1"
+---
+# Ingress for the Client  /charre
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: charre-ingress
+  namespace: losstracker
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: mlstatstracker.org
+      http:
+        paths:
+          - path: /charre
+            pathType: Prefix
+            backend:
+              service:
+                name: charre-server 
+                port:
+                  number: 5001
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: losstracker-api
+  namespace: losstracker
+spec:
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - match: Host(`mlstatstracker.org`) && PathPrefix(`/charre`)
+      kind: Rule
+      services:
+        - name: charre-server 
+          port: 5001
+      middlewares:
+        - name: charreapi # Reference to the middleware

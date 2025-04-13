@@ -26,10 +26,13 @@ Streaming Endpoint
 
 
 TODOS:
-setup volume for model weights
-add basic http endpoint
-let http endpoint trigger gpu function with demo model
+setup volume for model weights - done
+add basic http endpoint - done
+let http endpoint trigger gpu function with demo model - done
 Define requirements.txt
 
-To run:
+To run in dev:
 modal serve basic.py
+
+To deploy:
+modal deploy basic.py
