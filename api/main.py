@@ -1,17 +1,21 @@
 from http import HTTPStatus
 
-from flask import Flask, Response, request
+from flask import Flask, Response, request, jsonify
 from flask_cors import CORS
 from feedback.helpers import response_wrapper
 from feedback.mock import mock_data
 from feedback.models import Feedback
 from feedback.mongo import MongoCollections, get_client
+from base64 import b64decode
 
 app = Flask(__name__)
 
 # Allow cors origin source: https://stackoverflow.com/questions/25594893/how-to-enable-cors-in-flask
 cors = CORS(app, supports_credentials=True)
 
+@app.route('/test', methods=['GET'])
+def test_endpoint():
+    return jsonify({"message": "GET request successful"}), 200
 
 @app.route("/labels", methods=["GET"])
 def list_labels() -> Response:
@@ -36,9 +40,11 @@ def post_feedback() -> Response:
     data = request.get_json()
 
     try:
+        data["image"] = b64decode(data["image"])
         feedback = Feedback(**data)
         result = feedback_client.insert_one(feedback.model_dump())
     except ValueError as e:
+        print(e)
         return response_wrapper(
             code=HTTPStatus.BAD_REQUEST,
             body={
@@ -57,4 +63,4 @@ def post_feedback() -> Response:
 
 if __name__ == "__main__":
     mock_data()
-    app.run(host="localhost", port=5000, debug=True)
+    app.run(host="localhost", port=5001, debug=True)

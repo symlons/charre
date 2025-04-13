@@ -1,12 +1,11 @@
 import modal
-from modal import App, Image
 
 volume = modal.Volume.from_name("test_data", create_if_missing=True)
 
 app = modal.App(
-  "flask-server",
-  image=modal.Image.debian_slim().pip_install("flask", "torch"),
+  "flask-server", image=modal.Image.debian_slim().pip_install("flask", "torch")
 )
+
 gpu = "T4"
 slim_torch = (
   modal.Image.debian_slim(python_version="3.10")

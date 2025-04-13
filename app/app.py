@@ -1,50 +1,39 @@
 import streamlit as st
 import requests
+import base64
 
 st.title("charre: car brand classifier")
 
 st.header("Find your car brand")
 
-uploaded_file = st.file_uploader("Choose a image...", type=["jpg", "jpeg", "png"])
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
   st.image(uploaded_file, caption="Uploaded Image")
   if st.button("Predict"):
-    # Read file
     bytes_data = uploaded_file.getvalue()
 
     # TODO rest call to be defined
-
-    # Send bytestream to the model
-    # url = "http://example:"
-    # response = requests.post(url, files={"file": bytes_data})
-    # if response.status_code == 200:
-    #    result = response.json()
-    #    st.write(f"Predicted Brand: {result.get('brand', 'Unknown')}")
-    # else:
-    #    st.error("Failed to get a response from the model.")
     st.write("Predicted Brand: <Result from model>")
 
 st.header("Feedback")
 
-# TODO fix that buttons are next to each other
+if "thumb_status" not in st.session_state:
+  st.session_state.thumb_status = None
+
 col1, col2 = st.columns(2)
+
 with col1:
   if st.button("👍", key="thumbs_up"):
-    st.success("Thank you for your feedback!")
+    st.session_state.thumb_status = True
+
 with col2:
   if st.button("👎", key="thumbs_down"):
-    st.warning("Thank you for your feedback! We'll work on improving.")
+    st.session_state.thumb_status = False
 
-list_brands = None
-
-if list_brands is None:
-  # TODO rest call to be defined
-  # url = "http://example:"
-  # response = requests.get(url)
-  # if response.status_code == 200:
-  #    list_brands = response.json()
-
+if st.session_state.thumb_status is None:
+  st.warning("Please provide feedback before submitting.")
+else:
   list_brands = [
     "Toyota",
     "Honda",
@@ -63,16 +52,26 @@ if list_brands is None:
     "Porsche",
   ]
 
-# Ensure the button is only clickable after a selection is made
-selected_brand = st.selectbox("What brand was the car?", list_brands, index=None)
+  selected_brand = st.selectbox("What brand was the car?", list_brands, index=None)
 
-if st.button("Submit Feedback") and selected_brand:
-  # Functionality to handle feedback submission
-  # TODO rest call to be defined
-  # response = requests.post(url, selected_brand)
-  # if response.status_code == 200:
-  #    st.success("Feedback submitted successfully!")
-  # else:
-  #    st.error("Failed to submit feedback.")
-  # For now, just show a success message
-  st.success(f"Feedback submitted successfully for brand: {selected_brand}")
+  if st.button("Submit Feedback") and selected_brand:
+    url = "http://localhost:5001/feedback"
+    bytes_data = uploaded_file.getvalue()
+
+    base64_image = base64.b64encode(bytes_data).decode("utf-8")
+
+    payload = {
+      "correct_label": selected_brand,
+      "correct": st.session_state.thumb_status,
+      "label": "TODO",
+      "image": base64_image,
+    }
+
+    response = requests.post(url, json=payload)
+    print("Send response")
+
+    if response.status_code == 201:
+      st.success("Feedback submitted successfully!")
+    else:
+      st.error("Failed to submit feedback.")
+      st.write("Response text:", response.text)
