@@ -1,10 +1,11 @@
 from http import HTTPStatus
 
-from flask import Flask, request
+from flask import Flask, Response, request
 from flask_cors import CORS
-
-from helpers import response_wrapper
-from models import Feedback
+from feedback.helpers import response_wrapper
+from feedback.mock import mock_data
+from feedback.models import Feedback
+from feedback.mongo import MongoCollections, get_client
 
 app = Flask(__name__)
 
@@ -12,17 +13,13 @@ app = Flask(__name__)
 cors = CORS(app, supports_credentials=True)
 
 
-@app.route('/api/v1/labels', methods=['GET'])
-def list_labels():
+@app.route("/labels", methods=["GET"])
+def list_labels() -> Response:
+    label_client = get_client(MongoCollections.LABELS)
 
-    # TODO: replace with mongodb query to fetch unique labels of training set
-    labels = [
-        "label1",
-        "label2",
-        "label3",
-        "label4",
-        "label5",
-    ]
+    labels = label_client.distinct("label")
+    labels = [label.lower() for label in labels]
+    labels.sort()
 
     return response_wrapper(
         code=HTTPStatus.OK,
@@ -33,12 +30,14 @@ def list_labels():
     )
 
 
-@app.route('/api/v1/feedback', methods=['POST'])
-def post_feedback():
+@app.route("/feedback", methods=["POST"])
+def post_feedback() -> Response:
+    feedback_client = get_client(MongoCollections.FEEDBACK)
     data = request.get_json()
 
     try:
         feedback = Feedback(**data)
+        result = feedback_client.insert_one(feedback.model_dump())
     except ValueError as e:
         return response_wrapper(
             code=HTTPStatus.BAD_REQUEST,
@@ -47,11 +46,15 @@ def post_feedback():
             },
         )
 
-    # TODO: insert feedback into mongodb
-    
     return response_wrapper(
         code=HTTPStatus.CREATED,
         body={
             "message": "Feedback received",
+            "id": str(result.inserted_id),
         },
     )
+
+
+if __name__ == "__main__":
+    mock_data()
+    app.run(host="localhost", port=5000, debug=True)

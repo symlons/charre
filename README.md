@@ -19,6 +19,23 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
+### Project management with `uv`
+
+uv manages python dependencies and virtual environments with pyproject.toml. When using uv no manual virtual environment setup is required.
+uv will auto detect virtual environment and dependencies and install them if they are missing and will also lock all dependencies. For more
+info [see uv docs](https://docs.astral.sh/uv/).
+
+```shell
+# install all deps
+uv sync --all-groups
+# install for specific app
+uv sync --group <app_name>
+
+# run stuff
+uv run python <path/to/script.py>
+uv run streamlit run <path/to/app.py>
+```
+
 ## Authors
 
 - Conti Laura

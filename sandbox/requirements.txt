@@ -1,4 +1,4 @@
-kagglehub
-transformers
-PIL
-torch
+kagglehub~=0.3.11
+transformers~=4.51.2
+pillow~=11.1.0
+torch~=2.6.0
