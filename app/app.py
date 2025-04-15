@@ -2,6 +2,28 @@ import streamlit as st
 import requests
 import base64
 
+def connection_error(error_text: str):
+  st.error("Failed to fetch labels.")
+  st.write("Response text:", error_text)
+  temp = [
+        "Toyota",
+        "Honda",
+        "Ford",
+        "Chevrolet",
+        "Nissan",
+        "Volkswagen",
+        "Hyundai",
+        "Kia",
+        "Subaru",
+        "Mazda",
+        "BMW",
+        "Mercedes-Benz",
+        "Audi",
+        "Lexus",
+        "Porsche",
+      ]
+  return temp
+
 st.title("charre: car brand classifier")
 
 st.header("Find your car brand")
@@ -31,34 +53,20 @@ with col2:
   if st.button("👎", key="thumbs_down"):
     st.session_state.thumb_status = False
 
-if st.session_state.thumb_status is None:
-  st.warning("Please provide feedback before submitting.")
+if st.session_state.thumb_status is None or uploaded_file is None:
+  st.warning("Please provide image and feedback before submitting.")
 else:
-  url = "http://localhost:5001/labels"
-  response = requests.get(url)
-  list_brands = []
-  if response.status_code == 200:
-      list_brands = response.json()
-  else:
-      st.error("Failed to fetch labels.")
-      st.write("Response text:", response.text)
-      list_brands = [
-      "Toyota",
-      "Honda",
-      "Ford",
-      "Chevrolet",
-      "Nissan",
-      "Volkswagen",
-      "Hyundai",
-      "Kia",
-      "Subaru",
-      "Mazda",
-      "BMW",
-      "Mercedes-Benz",
-      "Audi",
-      "Lexus",
-      "Porsche",
-    ]
+  try:
+    url = "http://localhost:5001/labels"
+    response = requests.get(url)
+    list_brands = []
+    if response.status_code == 200:
+        list_brands = response.json()
+    else:
+        list_brands = connection_error(response.text)
+        
+  except requests.exceptions.RequestException as e:
+    list_brands = connection_error(e.strerror)
 
   selected_brand = st.selectbox("What brand was the car?", list_brands, index=None)
 
@@ -74,12 +82,15 @@ else:
       "label": "TODO",
       "image": base64_image,
     }
+    try:
+      response = requests.post(url, json=payload)
 
-    response = requests.post(url, json=payload)
-    print("Send response")
-
-    if response.status_code == 201:
-      st.success("Feedback submitted successfully!")
-    else:
+      if response.status_code == 201:
+        st.success("Feedback submitted successfully!")
+      else:
+        st.error("Failed to submit feedback.")
+        st.write("Response text:", response.text)
+    except requests.exceptions.RequestException as e:
       st.error("Failed to submit feedback.")
-      st.write("Response text:", response.text)
+      st.write("Error:", e)
+
