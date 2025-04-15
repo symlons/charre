@@ -34,23 +34,31 @@ with col2:
 if st.session_state.thumb_status is None:
   st.warning("Please provide feedback before submitting.")
 else:
-  list_brands = [
-    "Toyota",
-    "Honda",
-    "Ford",
-    "Chevrolet",
-    "Nissan",
-    "Volkswagen",
-    "Hyundai",
-    "Kia",
-    "Subaru",
-    "Mazda",
-    "BMW",
-    "Mercedes-Benz",
-    "Audi",
-    "Lexus",
-    "Porsche",
-  ]
+  url = "http://localhost:5001/labels"
+  response = requests.get(url)
+  list_brands = []
+  if response.status_code == 200:
+      list_brands = response.json()
+  else:
+      st.error("Failed to fetch labels.")
+      st.write("Response text:", response.text)
+      list_brands = [
+      "Toyota",
+      "Honda",
+      "Ford",
+      "Chevrolet",
+      "Nissan",
+      "Volkswagen",
+      "Hyundai",
+      "Kia",
+      "Subaru",
+      "Mazda",
+      "BMW",
+      "Mercedes-Benz",
+      "Audi",
+      "Lexus",
+      "Porsche",
+    ]
 
   selected_brand = st.selectbox("What brand was the car?", list_brands, index=None)
 
