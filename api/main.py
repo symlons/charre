@@ -1,22 +1,18 @@
 from base64 import b64decode
 from http import HTTPStatus
 
+from bson import ObjectId
 from feedback.helpers import response_wrapper
 from feedback.mock import mock_data
-from feedback.models import Feedback
+from feedback.models import Feedback, FeedbackList
 from feedback.mongo import MongoCollections, get_client
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, request
 from flask_cors import CORS
 
 app = Flask(__name__)
 
 # Allow cors origin source: https://stackoverflow.com/questions/25594893/how-to-enable-cors-in-flask
 cors = CORS(app, supports_credentials=True)
-
-
-@app.route("/test", methods=["GET"])
-def test_endpoint():
-    return jsonify({"message": "GET request successful"}), 200
 
 
 @app.route("/labels", methods=["GET"])
@@ -46,7 +42,6 @@ def post_feedback() -> Response:
         feedback = Feedback(**data)
         result = feedback_client.insert_one(feedback.model_dump())
     except ValueError as e:
-        print(e)
         return response_wrapper(
             code=HTTPStatus.BAD_REQUEST,
             body={
@@ -60,6 +55,62 @@ def post_feedback() -> Response:
             "message": "Feedback received",
             "id": str(result.inserted_id),
         },
+    )
+
+
+@app.route("/feedback", methods=["GET"])
+def get_feedback() -> Response:
+    feedback_client = get_client(MongoCollections.FEEDBACK)
+
+    feedbacks = []
+    try:
+        for feedback in feedback_client.find(
+            {}, {"_id": 1, "label": 1, "correct": 1, "correct_label": 1}
+        ):
+            feedback_id = str(feedback.pop("_id"))
+            feedbacks.append(FeedbackList(**feedback, id=feedback_id).model_dump())
+    except ValueError as e:
+        return response_wrapper(
+            code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            body={
+                "error": str(e),
+            },
+        )
+
+    return response_wrapper(
+        code=HTTPStatus.OK,
+        body={
+            "feedback": feedbacks,
+            "count": len(feedbacks),
+        },
+    )
+
+
+@app.route("/feedback/<feedback_id>", methods=["GET"])
+def get_feedback_by_id(feedback_id: str) -> Response:
+    feedback_client = get_client(MongoCollections.FEEDBACK)
+
+    if not (feedback := feedback_client.find_one({"_id": ObjectId(feedback_id)})):
+        return response_wrapper(
+            code=HTTPStatus.NOT_FOUND,
+            body={
+                "error": "Feedback not found",
+            },
+        )
+
+    try:
+        feedback = Feedback.model_validate(feedback)
+    except ValueError as e:
+        return response_wrapper(
+            code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            body={
+                "error": str(e),
+            },
+        )
+
+    return response_wrapper(
+        code=HTTPStatus.OK,
+        body=feedback.model_dump(),
     )
 
 

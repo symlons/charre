@@ -9,3 +9,10 @@ class Feedback(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+class FeedbackList(BaseModel):
+    id: str
+    label: str
+    correct: bool
+    correct_label: str
