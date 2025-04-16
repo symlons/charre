@@ -3,7 +3,6 @@ from http import HTTPStatus
 
 from bson import ObjectId
 from feedback.helpers import response_wrapper
-from feedback.mock import mock_data
 from feedback.models import Feedback, FeedbackList
 from feedback.mongo import MongoCollections, get_client
 from flask import Flask, Response, request
@@ -129,5 +128,4 @@ def get_feedback_by_id(feedback_id: str) -> Response:
 
 
 if __name__ == "__main__":
-    mock_data()
     app.run(host="localhost", port=5000, debug=True)

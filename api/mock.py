@@ -3,28 +3,10 @@ from pathlib import Path
 from feedback.models import Feedback
 from feedback.mongo import MongoCollections, get_client
 
-IMG_MOCK_DIR = Path(__file__).parent.parent / "mock"
+IMG_MOCK_DIR = Path(__file__).parent / "mock"
 
 
-def mock_data() -> None:
-    """
-    Mock data for local development
-
-    :return: None
-    """
-
-    label_client = get_client(MongoCollections.LABELS)
-    label_client.drop()
-    _mock_labels(label_client)
-
-    feedback_client = get_client(MongoCollections.FEEDBACK)
-    feedback_client.drop()
-    _mock_feedbacks(feedback_client)
-
-    print("Mock data inserted")
-
-
-def _mock_labels(label_client) -> None:
+def mock_labels(label_client) -> None:
     """
     Mock car labels for local dev
 
@@ -41,7 +23,8 @@ def _mock_labels(label_client) -> None:
     label_client.insert_many(labels)
 
 
-def _mock_feedbacks(feedback_client) -> None:
+
+def mock_feedbacks(feedback_client) -> None:
     """
     Mock car classification feedback for local dev
 
@@ -74,3 +57,15 @@ def _mock_feedbacks(feedback_client) -> None:
         ),
     ]
     feedback_client.insert_many([feedback.model_dump() for feedback in feedback])
+
+
+if __name__ == "__main__":
+    label_client = get_client(MongoCollections.LABELS)
+    label_client.drop()
+    mock_labels(label_client)
+
+    feedback_client = get_client(MongoCollections.FEEDBACK)
+    feedback_client.drop()
+    mock_feedbacks(feedback_client)
+
+    print("Mock data inserted")

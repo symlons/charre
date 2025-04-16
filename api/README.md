@@ -29,13 +29,15 @@ pip install -r requirements.txt
 uv sync --group api
 ```
 
-Start server:
+Start server and add mocking data:
 
 ```bash
 python main.py
+python mock.py
 
 # or with uv
 uv run python main.py
+uv run python mock.py
 ```
 
 ### Containerization
