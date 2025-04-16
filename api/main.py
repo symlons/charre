@@ -1,21 +1,23 @@
+from base64 import b64decode
 from http import HTTPStatus
 
-from flask import Flask, Response, request, jsonify
-from flask_cors import CORS
 from feedback.helpers import response_wrapper
 from feedback.mock import mock_data
 from feedback.models import Feedback
 from feedback.mongo import MongoCollections, get_client
-from base64 import b64decode
+from flask import Flask, Response, jsonify, request
+from flask_cors import CORS
 
 app = Flask(__name__)
 
 # Allow cors origin source: https://stackoverflow.com/questions/25594893/how-to-enable-cors-in-flask
 cors = CORS(app, supports_credentials=True)
 
-@app.route('/test', methods=['GET'])
+
+@app.route("/test", methods=["GET"])
 def test_endpoint():
     return jsonify({"message": "GET request successful"}), 200
+
 
 @app.route("/labels", methods=["GET"])
 def list_labels() -> Response:

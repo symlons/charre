@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from feedback.mongo import MongoCollections, get_client
 from feedback.models import Feedback
+from feedback.mongo import MongoCollections, get_client
 
 IMG_MOCK_DIR = Path(__file__).parent.parent / "mock"
 
