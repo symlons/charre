@@ -14,6 +14,11 @@ class MongoCollections(Enum):
 
 
 def get_client(collection: Collection) -> Collection:
+    """
+    Returns a mongo client for a given collection
+
+    :param collection: the collection to get the client for
+    """
     return MongoClient(
         host=os.getenv("MONGO_HOST", "localhost"),
         port=int(os.getenv("MONGO_PORT", "27017")),

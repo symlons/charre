@@ -8,7 +8,7 @@ def response_wrapper(
     code: HTTPStatus, body: dict | None = None, headers: dict | None = None
 ) -> Response:
     """
-    Wraps the response in a clean and consistent way.
+    Wraps the response in a clean and consistent way
 
     :param code: HTTPStatus
     :param body: dict

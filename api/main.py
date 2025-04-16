@@ -17,6 +17,9 @@ cors = CORS(app, supports_credentials=True)
 
 @app.route("/labels", methods=["GET"])
 def list_labels() -> Response:
+    """
+    List all unique available labels in the database
+    """
     label_client = get_client(MongoCollections.LABELS)
 
     labels = label_client.distinct("label")
@@ -34,6 +37,9 @@ def list_labels() -> Response:
 
 @app.route("/feedback", methods=["POST"])
 def post_feedback() -> Response:
+    """
+    Adds a new feedback to the database
+    """
     feedback_client = get_client(MongoCollections.FEEDBACK)
     data = request.get_json()
 
@@ -60,6 +66,9 @@ def post_feedback() -> Response:
 
 @app.route("/feedback", methods=["GET"])
 def get_feedback() -> Response:
+    """
+    Lists all feedbacks in the database
+    """
     feedback_client = get_client(MongoCollections.FEEDBACK)
 
     feedbacks = []
@@ -88,6 +97,11 @@ def get_feedback() -> Response:
 
 @app.route("/feedback/<feedback_id>", methods=["GET"])
 def get_feedback_by_id(feedback_id: str) -> Response:
+    """
+    Gets a feedback by its ID
+
+    :param feedback_id: The ID of the feedback to get
+    """
     feedback_client = get_client(MongoCollections.FEEDBACK)
 
     if not (feedback := feedback_client.find_one({"_id": ObjectId(feedback_id)})):
