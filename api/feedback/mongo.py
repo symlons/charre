@@ -17,8 +17,8 @@ def get_client(collection: Collection) -> Collection:
     return MongoClient(
         host=os.getenv("MONGO_HOST", "localhost"),
         port=int(os.getenv("MONGO_PORT", "27017")),
-        username=os.getenv("MONGO_USERNAME", ""),
-        password=quote_plus(os.getenv("MONGO_PASSWORD", "")),
+        username=os.getenv("MONGO_USERNAME", "mongo"),
+        password=quote_plus(os.getenv("MONGO_PASSWORD", "mongo")),
         maxPoolSize=10,
         waitQueueTimeoutMS=2000,
     )[MONGO_DB][collection.value]
