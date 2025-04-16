@@ -2,11 +2,12 @@ from pathlib import Path
 
 from feedback.models import Feedback
 from feedback.mongo import MongoCollections, get_client
+from pymongo.collection import Collection
 
 IMG_MOCK_DIR = Path(__file__).parent / "mock"
 
 
-def mock_labels(label_client) -> None:
+def mock_labels(label_client: Collection) -> None:
     """
     Mock car labels for local dev
 
@@ -23,8 +24,7 @@ def mock_labels(label_client) -> None:
     label_client.insert_many(labels)
 
 
-
-def mock_feedbacks(feedback_client) -> None:
+def mock_feedbacks(feedback_client: Collection) -> None:
     """
     Mock car classification feedback for local dev
 

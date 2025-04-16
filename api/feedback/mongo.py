@@ -13,7 +13,7 @@ class MongoCollections(Enum):
     FEEDBACK = os.getenv("MONGO_FEEDBACK", "feedback")
 
 
-def get_client(collection: Collection) -> Collection:
+def get_client(collection: MongoCollections) -> Collection:
     """
     Returns a mongo client for a given collection
 

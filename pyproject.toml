@@ -44,7 +44,12 @@ ignore_missing_imports = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 disallow_untyped_calls = true
-exclude = [".venv/", "tests/", "conftest.py"]
+# exclude all except api as other devs might not use uv
+exclude = [".venv/", "tests/", "conftest.py", "app/", "modal/", "production/", "sandbox/"]
+
+[tool.ruff]
+# exclude all except api as other devs might not use uv
+extend-exclude = ["app/", "modal/", "production/", "sandbox/"]
 
 [tool.ruff.lint]
 extend-ignore = ["E501"]
