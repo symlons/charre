@@ -48,12 +48,20 @@ def create_validation_dataset(images_per_class: int = 7) -> None:
     labels = [p.split("/")[1] for p in file_paths]
 
     # create df and sample by class to create validation set
-    df = pd.DataFrame({"image": file_paths, "label": labels})
+    df = pd.DataFrame({"image_path": file_paths, "label": labels})
     df_validation = df.groupby("label").apply(
         lambda x: x.sample(n=images_per_class, random_state=9) if len(x) >= 10 else x).reset_index(drop=True)
 
+    # add image as bytes to df
+    df_validation["image"] = df_validation["image_path"].apply(image_to_bytes)
     # safe to csv
     df_validation.to_csv("validation.csv", index=False)
+
+
+def image_to_bytes(image_path: "str") -> bytes:
+    with open(image_path, 'rb') as img_file:
+        return img_file.read()
+
 
 def delete_images() -> None:
     """
@@ -67,7 +75,7 @@ def delete_images() -> None:
 
     # validation images
     df_validation = pd.read_csv("validation.csv")
-    validation_images = set(df_validation["image"].tolist())
+    validation_images = set(df_validation["image_path"].tolist())
 
     # delete non-val images
     for image_path in all_images:
