@@ -53,25 +53,26 @@ with col2:
   if st.button("👎", key="thumbs_down"):
     st.session_state.thumb_status = False
 
+try:
+    url = "http://localhost:5000/labels"
+    response = requests.get(url)
+    print(response.json())
+    list_brands = []
+    if response.status_code == 200:
+        list_brands = response.json()["labels"]
+    else:
+        list_brands = connection_error(response.text)     
+except requests.exceptions.RequestException as e:
+  list_brands = connection_error(e.strerror)
+
 if st.session_state.thumb_status is None or uploaded_file is None:
   st.warning("Please provide image and feedback before submitting.")
 else:
-  try:
-    url = "http://localhost:5001/labels"
-    response = requests.get(url)
-    list_brands = []
-    if response.status_code == 200:
-        list_brands = response.json()
-    else:
-        list_brands = connection_error(response.text)
-        
-  except requests.exceptions.RequestException as e:
-    list_brands = connection_error(e.strerror)
 
   selected_brand = st.selectbox("What brand was the car?", list_brands, index=None)
 
   if st.button("Submit Feedback") and selected_brand:
-    url = "http://localhost:5001/feedback"
+    url = "http://localhost:5000/feedback"
     bytes_data = uploaded_file.getvalue()
 
     base64_image = base64.b64encode(bytes_data).decode("utf-8")
