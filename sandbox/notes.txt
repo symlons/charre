@@ -1,5 +1,0 @@
-SOURCES
-Hugging Model: https://huggingface.co/dima806/car_brands_image_detection
-Notebook: https://www.kaggle.com/code/dima806/car-brands-image-detection-vit
-Dataset: https://www.kaggle.com/datasets/yamaerenay/100-images-of-top-50-car-brands
-Vision Transformer: https://huggingface.co/docs/transformers/model_doc/vit
