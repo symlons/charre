@@ -26,6 +26,11 @@ This script will:
 - Save the validation set (contains image path and correct label) as `validation.csv`
 - Download the model configuration for use in further processing or model loading.
 
+To monitor the training process, start an ML Flow server.
+
+```bash
+mlflow server --host 127.0.0.1 --port 8080
+```
 
 ## Files
 ```txt
@@ -46,7 +51,9 @@ This script will:
     └── validation.csv                 # validation set
 ```
 
-## Attachements
+
+
+## Attachments
 ### useful links
 [1] [Hugging Model](https://huggingface.co/dima806/car_brands_image_detection), accessed 27.04.2025
 
