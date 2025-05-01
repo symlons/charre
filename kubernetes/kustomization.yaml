@@ -1,0 +1,5 @@
+resources:
+  - namespace.yaml
+  - pvc_mongodb.yaml
+  - service_mongodb.yaml
+  - statefulset_mongodb.yaml
