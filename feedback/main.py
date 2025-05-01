@@ -14,6 +14,14 @@ app = Flask(__name__)
 cors = CORS(app, supports_credentials=True)
 
 
+@app.route("/health", methods=["GET"])
+def get_health() -> Response:
+    """
+    Health check endpoint
+    """
+    return response_wrapper(code=HTTPStatus.OK, body={"message": "OK"})
+
+
 @app.route("/labels", methods=["GET"])
 def list_labels() -> Response:
     """

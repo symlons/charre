@@ -45,13 +45,13 @@ uv run python mock.py
 Build the container:
 
 ```bash
-docker build -t feedback-api:latest .
-podman build -t feedback-api:latest .
+docker build -t charre-feedback:latest .
+podman build -t charre-feedback:latest .
 ```
 
 Run the container:
 
 ```bash
-docker run --name feedback-api -p 5000:5000 feedback-api:latest
-podman run --name feedback-api -p 5000:5000 feedback-api:latest
+docker run --name charre-feedback -p 5000:5000 charre-feedback:latest
+podman run --name charre-feedback -p 5000:5000 charre-feedback:latest
 ```
