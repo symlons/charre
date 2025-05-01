@@ -19,7 +19,7 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: mongodb
-          image: mongodb:7.0.20
+          image: docker.io/library/mongo:7.0.20
           imagePullPolicy: Always
           ports:
             - containerPort: 27017
