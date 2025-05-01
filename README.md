@@ -2,9 +2,9 @@
 
 MLOPS Project:
 
-- [Feedback API](./api/README.md)
+- [Feedback API](./feedback/README.md)
 - [Streamlit App](./app/README.md)
-- [AI Service](./model/README.md)
+- [AI Service](./modal/README.md)
 - [Sandbox Scripts](./sandbox/README.md)
 
 Each directory has its own `requirements.txt` file and is independent of the others. The documentation about the services is in the respective directories.
