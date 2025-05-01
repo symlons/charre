@@ -1,0 +1,92 @@
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: deny-all
+  namespace: charre
+spec:
+  podSelector: {} # selects all pods
+  policyTypes:
+    - Ingress
+    - Egress
+
+---
+
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: kubedns-allow
+  namespace: charre
+spec:
+  podSelector: {}  # selects all pods
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+  policyTypes:
+    - Egress
+
+---
+
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: mongodb-allow
+  namespace: charre
+spec:
+  podSelector:
+    matchLabels:
+      app: mongodb
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              component: feedback
+              app: charre
+      ports:
+        - port: 27017
+          protocol: TCP
+  policyTypes:
+    - Ingress
+
+---
+
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: app-allow
+  namespace: charre
+spec:
+  podSelector:
+    matchLabels:
+      component: app
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        # TODO: not sure if this works
+        - port: 5000 # feedback
+          protocol: TCP
+        - port: 8501 # app
+          protocol: TCP
+        - port: 27017 # mongodb
+          protocol: TCP
+  egress:
+    - ports:
+        - port: 8501 # app
+          protocol: TCP
+        - port: 5000 # feedback
+          protocol: TCP
+  policyTypes:
+    - Ingress
+    - Egress
