@@ -3,14 +3,15 @@ apiVersion: networking.k8s.io/v1
 metadata:
   name: charre
   namespace: charre
-  annotations:
-    ingress.kubernetes.io/ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: letsencrypt-staging
+#  annotations:
+#    ingress.kubernetes.io/ssl-redirect: "true"
+#    cert-manager.io/cluster-issuer: letsencrypt-staging
 spec:
-  tls:
-    - hosts:
-        - charre.trunijoh.ccp2.ch
-      secretName: charre-tls-cert
+  ingressClassName: traefik
+#  tls:
+#    - hosts:
+#        - charre.trunijoh.ccp2.ch
+#      secretName: charre-tls-cert
   rules:
     - host: charre.trunijoh.ccp2.ch
       http:
