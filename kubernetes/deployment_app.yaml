@@ -1,0 +1,37 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: app
+  labels:
+    component: app
+    app: charre
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: app
+      app: charre
+  template:
+    metadata:
+      labels:
+        component: app
+        app: charre
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/symlons/charre/app:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          ports:
+            - name: http
+              containerPort: 8501
+              protocol: TCP
+          env:
+            - name: FEEDBACK_URI
+              value: "" # TODO: set feedback service URI
