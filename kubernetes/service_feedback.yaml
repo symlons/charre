@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: feedback
+  labels:
+    component: feedback
+    app: charre
+spec:
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000
+  selector:
+    component: feedback
+    app: charre
