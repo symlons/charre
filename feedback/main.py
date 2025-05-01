@@ -15,7 +15,7 @@ app = Flask(__name__)
 cors = CORS(app, supports_credentials=True)
 
 
-@app.route("/health", methods=["GET"])
+@app.route("/feedback/health", methods=["GET"])
 def get_health() -> Response:
     """
     Health check endpoint
@@ -23,7 +23,7 @@ def get_health() -> Response:
     return response_wrapper(code=HTTPStatus.OK, body={"message": "OK"})
 
 
-@app.route("/labels", methods=["GET"])
+@app.route("/feedback/labels", methods=["GET"])
 def list_labels() -> Response:
     """
     List all unique available labels in the database
@@ -43,7 +43,7 @@ def list_labels() -> Response:
     )
 
 
-@app.route("/feedback", methods=["POST"])
+@app.route("/feedback/feedback", methods=["POST"])
 def post_feedback() -> Response:
     """
     Adds a new feedback to the database
@@ -72,7 +72,7 @@ def post_feedback() -> Response:
     )
 
 
-@app.route("/feedback", methods=["GET"])
+@app.route("/feedback/feedback", methods=["GET"])
 def get_feedback() -> Response:
     """
     Lists all feedbacks in the database
@@ -103,7 +103,7 @@ def get_feedback() -> Response:
     )
 
 
-@app.route("/feedback/<feedback_id>", methods=["GET"])
+@app.route("/feedback/feedback/<feedback_id>", methods=["GET"])
 def get_feedback_by_id(feedback_id: str) -> Response:
     """
     Gets a feedback by its ID

@@ -1,6 +1,10 @@
 import streamlit as st
 import requests
 import base64
+import os
+
+# Feedback URL has /feedback prefix already included for simplicity
+FEEDBACK_URL = os.getenv("FEEDBACK_URL", "http://localhost:5000/feedback")
 
 def connection_error(error_text: str):
   st.error("Failed to fetch labels.")
@@ -54,7 +58,7 @@ with col2:
     st.session_state.thumb_status = False
 
 try:
-    url = "http://localhost:5000/labels"
+    url = f"{FEEDBACK_URL}/labels"
     response = requests.get(url)
     print(response.json())
     list_brands = []
@@ -72,7 +76,7 @@ else:
   selected_brand = st.selectbox("What brand was the car?", list_brands, index=None)
 
   if st.button("Submit Feedback") and selected_brand:
-    url = "http://localhost:5000/feedback"
+    url = f"{FEEDBACK_URL}/feedback"
     bytes_data = uploaded_file.getvalue()
 
     base64_image = base64.b64encode(bytes_data).decode("utf-8")
