@@ -36,3 +36,13 @@ spec:
           env:
             - name: FEEDBACK_URL
               value: "http://feedback:5000/feedback"
+          livenessProbe:
+            httpGet: 
+              path: /healtz
+              port: 8501
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
