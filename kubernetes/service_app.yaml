@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: app
+  labels:
+    component: app
+    app: charre
+spec:
+  ports:
+    - name: http
+      port: 8501
+      targetPort: 8501
+  selector:
+    component: app
+    app: charre
