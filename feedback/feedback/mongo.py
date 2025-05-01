@@ -13,7 +13,7 @@ class MongoCollections(Enum):
     FEEDBACK = os.getenv("MONGO_FEEDBACK", "feedback")
 
 
-def get_client(collection: MongoCollections) -> Collection:
+def get_client(timeout: int = 10_000) -> MongoClient:
     """
     Returns a mongo client for a given collection
 
@@ -26,4 +26,14 @@ def get_client(collection: MongoCollections) -> Collection:
         password=quote_plus(os.getenv("MONGO_PASSWORD", "mongo")),
         maxPoolSize=10,
         waitQueueTimeoutMS=2000,
-    )[MONGO_DB][collection.value]
+        serverSelectionTimeoutMS=timeout,
+    )
+
+
+def get_collection(collection: MongoCollections) -> Collection:
+    """
+    Returns a mongo collection for a given collection
+
+    :param collection: the collection to get the client for
+    """
+    return get_client()[MONGO_DB][collection.value]

@@ -4,10 +4,11 @@ from http import HTTPStatus
 from bson import ObjectId
 from flask import Flask, Response, request
 from flask_cors import CORS
+from pymongo.errors import PyMongoError
 
 from feedback.helpers import response_wrapper
 from feedback.models import Feedback, FeedbackList
-from feedback.mongo import MongoCollections, get_client
+from feedback.mongo import MongoCollections, get_client, get_collection
 
 app = Flask(__name__)
 
@@ -15,10 +16,28 @@ app = Flask(__name__)
 cors = CORS(app, supports_credentials=True)
 
 
-@app.route("/feedback/health", methods=["GET"])
-def get_health() -> Response:
+@app.route("/feedback/readiness", methods=["GET"])
+def get_readiness() -> Response:
     """
-    Health check endpoint
+    Readiness check endpoint
+    """
+    try:
+        client = get_client(timeout=2000)
+        client.admin.command("ping")
+    except PyMongoError:
+        return response_wrapper(
+            code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            body={
+                "error": "MongoDB connection error",
+            },
+        )
+    return response_wrapper(code=HTTPStatus.OK, body={"message": "OK"})
+
+
+@app.route("/feedback/liveness", methods=["GET"])
+def get_liveness() -> Response:
+    """
+    Liveness check endpoint
     """
     return response_wrapper(code=HTTPStatus.OK, body={"message": "OK"})
 
@@ -28,7 +47,7 @@ def list_labels() -> Response:
     """
     List all unique available labels in the database
     """
-    label_client = get_client(MongoCollections.LABELS)
+    label_client = get_collection(MongoCollections.LABELS)
 
     labels = label_client.distinct("label")
     labels = [label.lower() for label in labels]
@@ -48,7 +67,7 @@ def post_feedback() -> Response:
     """
     Adds a new feedback to the database
     """
-    feedback_client = get_client(MongoCollections.FEEDBACK)
+    feedback_client = get_collection(MongoCollections.FEEDBACK)
     data = request.get_json()
 
     try:
@@ -77,7 +96,7 @@ def get_feedback() -> Response:
     """
     Lists all feedbacks in the database
     """
-    feedback_client = get_client(MongoCollections.FEEDBACK)
+    feedback_client = get_collection(MongoCollections.FEEDBACK)
 
     feedbacks = []
     try:
@@ -110,7 +129,7 @@ def get_feedback_by_id(feedback_id: str) -> Response:
 
     :param feedback_id: The ID of the feedback to get
     """
-    feedback_client = get_client(MongoCollections.FEEDBACK)
+    feedback_client = get_collection(MongoCollections.FEEDBACK)
 
     if not (feedback := feedback_client.find_one({"_id": ObjectId(feedback_id)})):
         return response_wrapper(
