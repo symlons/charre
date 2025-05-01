@@ -30,7 +30,7 @@ spec:
               cpu: "500m"
           ports:
             - name: http
-              containerPort: 8501
+              containerPort: 5000
               protocol: TCP
           env:
             - name: MONGO_HOST

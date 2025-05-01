@@ -33,5 +33,5 @@ spec:
               containerPort: 8501
               protocol: TCP
           env:
-            - name: FEEDBACK_URI
-              value: "" # TODO: set feedback service URI
+            - name: FEEDBACK_URL
+              value: "http://feedback:5000/feedback"
