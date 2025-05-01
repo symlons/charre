@@ -1,0 +1,27 @@
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: charre
+spec:
+  tls:
+    - hosts:
+        - charre.io # TODO: adjust to correct domain
+      secretName: charre-tls
+  rules:
+    - host: charre.io # TODO: adjust to correct domain
+      http:
+        paths:
+          - path: /feedback
+            pathType: Prefix
+            backend:
+              service:
+                name: feedback
+                port:
+                  number: 5000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app
+                port:
+                  number: 8501

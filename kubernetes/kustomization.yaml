@@ -1,9 +1,14 @@
 resources:
   - deployment_app.yaml
   - deployment_feedback.yaml
+  - ingress.yaml
   - namespace.yaml
+  - network_policies.yaml
   - pvc_mongodb.yaml
   - service_app.yaml
   - service_feedback.yaml
   - service_mongodb.yaml
   - statefulset_mongodb.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
