@@ -1,8 +1,9 @@
 from pathlib import Path
 
+from pymongo.collection import Collection
+
 from feedback.models import Feedback
 from feedback.mongo import MongoCollections, get_client
-from pymongo.collection import Collection
 
 IMG_MOCK_DIR = Path(__file__).parent / "mock"
 

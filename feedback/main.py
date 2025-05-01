@@ -2,11 +2,12 @@ from base64 import b64decode
 from http import HTTPStatus
 
 from bson import ObjectId
+from flask import Flask, Response, request
+from flask_cors import CORS
+
 from feedback.helpers import response_wrapper
 from feedback.models import Feedback, FeedbackList
 from feedback.mongo import MongoCollections, get_client
-from flask import Flask, Response, request
-from flask_cors import CORS
 
 app = Flask(__name__)
 
