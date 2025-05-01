@@ -28,11 +28,13 @@ pip install -r requirements.txt
 Build the container:
 
 ```bash
-docker build -t streamlit-app .
+docker build -t charre-app:latest .
+podman build -t charre-app:latest .
 ```
 
 Run the container:
 
 ```bash
-docker run -p 8501:8501 streamlit-app 
+docker run --name charre-app -p 8501:8501 charre-app:latest
+podman run --name charre-app -p 8501:8501 charre-app:latest
 ```
