@@ -3,13 +3,16 @@ apiVersion: networking.k8s.io/v1
 metadata:
   name: charre
   namespace: charre
+  annotations:
+    ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: letsencrypt-staging
 spec:
   tls:
     - hosts:
-        - charre.io # TODO: adjust to correct domain
-      secretName: charre-tls
+        - charre.trunijoh.ccp2.ch
+      secretName: charre-tls-cert
   rules:
-    - host: charre.io # TODO: adjust to correct domain
+    - host: charre.trunijoh.ccp2.ch
       http:
         paths:
           - path: /feedback
