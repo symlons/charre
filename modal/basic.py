@@ -1,74 +1,88 @@
+import hashlib
+
+from flask import jsonify, request
+
 import modal
 
 volume = modal.Volume.from_name("test_data", create_if_missing=True)
 
 app = modal.App(
-  "flask-server", image=modal.Image.debian_slim().pip_install("flask", "torch")
+    "flask-server", image=modal.Image.debian_slim().pip_install("flask", "torch")
 )
 
 gpu = "T4"
 slim_torch = (
-  modal.Image.debian_slim(python_version="3.10")
-  .pip_install("torch", "torchvision", "Pillow")
-  .add_local_python_source("models")
+    modal.Image.debian_slim(python_version="3.10")
+    .pip_install("torch", "torchvision", "Pillow")
+    .add_local_python_source("models")
 )
 
 
 @app.cls(gpu=gpu, image=slim_torch, volumes={"/data": volume})
 class Model:
-  @modal.enter()
-  def enter(self):
-    import torchvision.transforms as transforms
-    from torchvision import models
-    from torchvision.models import ResNet50_Weights
+    def __init__(self, file_path: str):
+        self.file_path = file_path
+        self.model = None
 
-    self.transform = transforms.Compose(
-      [
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-      ]
-    )
+    @modal.enter()
+    def enter(self):
+        import torchvision.transforms as transforms
+        from torchvision import models
+        from torchvision.models import ResNet50_Weights
 
-    self.model = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
-    self.model.to("cuda")
+        self.transform = transforms.Compose(
+            [
+                transforms.Resize(256),
+                transforms.CenterCrop(224),
+                transforms.ToTensor(),
+                transforms.Normalize(
+                    mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
+                ),
+            ]
+        )
 
-  @modal.method()
-  def inference(self):
-    import torch
-    from PIL import Image as open_image
+        self.model = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
+        self.model.to("cuda")
 
-    image = "/tycan.jpg"
-    image_path = "/data" + image
-    image = open_image.open(image_path).convert("RGB")
-    image_tensor = self.transform(image).unsqueeze(0).to("cuda")
+    @modal.method()
+    def inference(self):
+        import torch
+        from PIL import Image as open_image
 
-    with torch.no_grad():
-      output = self.model(image_tensor)
-      _, predicted_class = torch.max(output, 1)
+        image = open_image.open(self.file_path).convert("RGB")
+        image_tensor = self.transform(image).unsqueeze(0).to("cuda")
 
-      print(f"Predicted Class: {predicted_class.item()}")
-    return predicted_class.detach().cpu().tolist()
+        with torch.no_grad():
+            output = self.model(image_tensor)  # noqa: F821
+            _, predicted_class = torch.max(output, 1)
+
+        print(f"Predicted Class: {predicted_class.item()}")
+        return predicted_class.detach().cpu().tolist()
 
 
 @app.function(scaledown_window=3)
 @modal.wsgi_app()
 def flask_app():
-  from flask import Flask, request
+    from flask import Flask
 
-  web_app = Flask(__name__)
+    web_app = Flask(__name__)
 
-  @web_app.get("/")
-  def home():
-    return "Testing Flask server"
+    @web_app.get("/")
+    def home():
+        return "Testing Flask server"
 
-  @web_app.post("/test")
-  def foo():
-    return request.json
+    @web_app.get("/classify")
+    def model_endpoint():
+        if "file" not in request.files:
+            return jsonify({"error": "No file part in the request"}), 400
 
-  @web_app.get("/model_endpoint")
-  def model_endpoint():
-    return Model().inference.remote()
+        file = request.files["file"]
+        file_path = f"/data/{hashlib.sha256(file.read()).hexdigest()}" # TODO: not sure if .read() works here
+        file.save(file_path)
 
-  return web_app
+        label = Model(
+            file_path=file_path
+        ).inference.remote()  # TODO get text label (not number) with confidence
+        return jsonify({"label": label, "confidence": 0.99})
+
+    return web_app
