@@ -3,7 +3,7 @@ resources:
   - deployment_feedback.yaml
   - ingress.yaml
   - namespace.yaml
-  - network_policies.yaml
+  # - network_policies.yaml
   - pvc_mongodb.yaml
   - service_app.yaml
   - service_feedback.yaml
