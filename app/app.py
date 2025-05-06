@@ -5,6 +5,7 @@ import os
 
 # Feedback URL has /feedback prefix already included for simplicity
 FEEDBACK_URL = os.getenv("FEEDBACK_URL", "http://localhost:5000/feedback")
+PREDICT_URL = os.getenv("PREDICT_URL", "http://localhost:5001/predict")
 
 def connection_error(error_text: str):
   st.error("Failed to fetch labels.")
@@ -39,8 +40,18 @@ if uploaded_file is not None:
   if st.button("Predict"):
     bytes_data = uploaded_file.getvalue()
 
-    # TODO rest call to be defined
-    st.write("Predicted Brand: <Result from model>")
+    try:
+      response = requests.post(PREDICT_URL, data=bytes_data, headers={'Content-Type': 'application/octet-stream'})
+      if response.status_code == 200:
+        st.success("Prediction successful!")
+        st.write("Predicted Brand: ", response.json()["predicted_brand"])
+      else:
+        st.error("Failed to predict brand.")
+        st.write("Response text:", response.text)
+    except requests.exceptions.RequestException as e:
+      st.error("Failed to predict brand.")
+      st.write("Error:", e)
+  #st.write("Predicted Brand: <Result from model>")
 
 st.header("Feedback")
 
