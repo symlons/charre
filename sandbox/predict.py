@@ -1,9 +1,10 @@
 import torch
+import torch.nn.functional as F
 from PIL import Image as PILImage
 from transformers import ViTImageProcessor, ViTForImageClassification
 
 
-def predict(img: PILImage) -> str:
+def predict(img: PILImage) -> tuple[str, float]:
     """
     Takes a car image and returns a prediction of its brand
     :param img: Car image to be classified
@@ -26,13 +27,18 @@ def predict(img: PILImage) -> str:
     with torch.no_grad():
         outputs = model(**inputs)
 
-    softmax = outputs.logits
-    predicted_class_idx = softmax.argmax(-1).item()
-    predicted_class = model.config.id2label[predicted_class_idx]
-    return predicted_class
+    # get predicted class and confidence
+    logits = outputs.logits
+    probs = F.softmax(logits, dim=1)
+    max_val, max_idx = torch.max(probs, dim=1)
+    predicted_class = model.config.id2label[max_idx.item()]
+    confidence = round(max_val.item(), 2)
+    return predicted_class, confidence
 
 
 if __name__ == "__main__":
     # example usage
     image = PILImage.open("./images/Acura/Acura_032.jpg")
-    print(predict(image))
+    predicted_class, confidence = predict(image)
+    print(f"predicted_class: {predicted_class}")
+    print(f"confidence: {confidence}")
