@@ -31,7 +31,7 @@ def predict(img: PILImage) -> tuple[str, float]:
     logits = outputs.logits
     probs = F.softmax(logits, dim=1)
     max_val, max_idx = torch.max(probs, dim=1)
-    predicted_class = model.config.id2label[max_idx.item()]
+    predicted_class = model.config.id2label[max_idx.item()].lower().strip()
     confidence = round(max_val.item(), 2)
     return predicted_class, confidence
 
