@@ -71,7 +71,7 @@ def post_labels() -> Response:
     data = request.get_json()
 
     try:
-        label = data["label"]
+        label = data["label"].lower().strip()
         if label_client.find_one({"label": label}):
             return response_wrapper(
                 code=HTTPStatus.BAD_REQUEST,
@@ -107,6 +107,7 @@ def post_feedback() -> Response:
     try:
         data["image"] = b64decode(data["image"])
         feedback = Feedback(**data)
+        feedback.label = feedback.label.lower().strip()
         result = feedback_client.insert_one(feedback.model_dump())
     except ValueError as e:
         return response_wrapper(
