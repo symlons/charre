@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class Feedback(BaseModel):
@@ -10,9 +10,19 @@ class Feedback(BaseModel):
     label: str
     correct: bool
     correct_label: str
+    trained: bool = False
 
     class Config:
         arbitrary_types_allowed = True
+
+
+class FeedbackPatch(BaseModel):
+    """
+    Object for patching feedback from trained=false to trained=true
+    """
+
+    trained: bool
+    model_config = ConfigDict(extra="forbid")
 
 
 class FeedbackList(BaseModel):

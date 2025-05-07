@@ -7,7 +7,7 @@ from flask_cors import CORS
 from pymongo.errors import PyMongoError
 
 from feedback.helpers import response_wrapper
-from feedback.models import Feedback, FeedbackList
+from feedback.models import Feedback, FeedbackList, FeedbackPatch
 from feedback.mongo import MongoCollections, get_client, get_collection
 
 app = Flask(__name__)
@@ -187,6 +187,38 @@ def get_feedback_by_id(feedback_id: str) -> Response:
     return response_wrapper(
         code=HTTPStatus.OK,
         body=feedback.model_dump(),
+    )
+
+
+@app.route("/feedback/feedback/<feedback_id>", methods=["PATCH"])
+def patch_feedback_by_id(feedback_id: str) -> Response:
+    """
+    Updates a feedback by its ID
+
+    :param feedback_id: The ID of the feedback to update
+    """
+    feedback_client = get_collection(MongoCollections.FEEDBACK)
+    data = request.get_json()
+
+    try:
+        feedback = FeedbackPatch(**data)
+        feedback_client.update_one(
+            {"_id": ObjectId(feedback_id)},
+            {"$set": feedback.model_dump()},
+        )
+    except ValueError as e:
+        return response_wrapper(
+            code=HTTPStatus.BAD_REQUEST,
+            body={
+                "error": str(e),
+            },
+        )
+    return response_wrapper(
+        code=HTTPStatus.OK,
+        body={
+            "message": "Feedback updated",
+            "id": feedback_id,
+        },
     )
 
 
