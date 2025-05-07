@@ -12,3 +12,10 @@ resources:
 
 generatorOptions:
   disableNameSuffixHash: true
+
+# On new/custom deployments adjust the tags here (not in deployments)!
+images:
+  - name: ghcr.io/symlons/charre/app
+    newTag: latest
+  - name: ghcr.io/symlons/charre/feedback
+    newTag: latest
