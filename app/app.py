@@ -10,6 +10,7 @@ FEEDBACK_URL = os.getenv("FEEDBACK_URL", "http://localhost:5000/feedback")
 CLASSIIER_URL = os.getenv(
     "CLASSIFIER_URL", "https://fabio-kost--flask-server-flask-app.modal.run"
 )
+PREDICT_URL = os.getenv("PREDICT_URL", "http://localhost:5001/predict")
 
 # Set up session state variables
 if "thumb_status" not in st.session_state:
@@ -30,6 +31,18 @@ def classify_image(file: UploadedFile) -> None:
 
     st.session_state.label = "TODO"  # Placeholder for the label
     st.write(f"Predicted Brand: {st.session_state.label}")
+
+    try:
+      response = requests.post(PREDICT_URL, data=bytes_data, headers={'Content-Type': 'application/octet-stream'})
+      if response.status_code == 200:
+        st.success("Prediction successful!")
+        st.write("Predicted Brand: ", response.json()["predicted_brand"])
+      else:
+        st.error("Failed to predict brand.")
+        st.write("Response text:", response.text)
+    except requests.exceptions.RequestException as e:
+      st.error("Failed to predict brand.")
+      st.write("Error:", e)
 
 
 def submit_feedback(file: UploadedFile, correct_label: str, label: str) -> None:

@@ -7,7 +7,7 @@ from flask_cors import CORS
 from pymongo.errors import PyMongoError
 
 from feedback.helpers import response_wrapper
-from feedback.models import Feedback, FeedbackList
+from feedback.models import Feedback, FeedbackList, FeedbackPatch
 from feedback.mongo import MongoCollections, get_client, get_collection
 
 app = Flask(__name__)
@@ -62,6 +62,40 @@ def list_labels() -> Response:
     )
 
 
+@app.route("/feedback/labels", methods=["POST"])
+def post_labels() -> Response:
+    """
+    Adds a new label to the database
+    """
+    label_client = get_collection(MongoCollections.LABELS)
+    data = request.get_json()
+
+    try:
+        label = data["label"].lower().strip()
+        if label_client.find_one({"label": label}):
+            return response_wrapper(
+                code=HTTPStatus.BAD_REQUEST,
+                body={
+                    "error": "Label already exists",
+                },
+            )
+        label_client.insert_one({"label": label})
+    except ValueError as e:
+        return response_wrapper(
+            code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            body={
+                "error": str(e),
+            },
+        )
+    return response_wrapper(
+        code=HTTPStatus.CREATED,
+        body={
+            "message": "Label created",
+            "label": label,
+        },
+    )
+
+
 @app.route("/feedback/feedback", methods=["POST"])
 def post_feedback() -> Response:
     """
@@ -73,6 +107,7 @@ def post_feedback() -> Response:
     try:
         data["image"] = b64decode(data["image"])
         feedback = Feedback(**data)
+        feedback.label = feedback.label.lower().strip()
         result = feedback_client.insert_one(feedback.model_dump())
     except ValueError as e:
         return response_wrapper(
@@ -152,6 +187,38 @@ def get_feedback_by_id(feedback_id: str) -> Response:
     return response_wrapper(
         code=HTTPStatus.OK,
         body=feedback.model_dump(),
+    )
+
+
+@app.route("/feedback/feedback/<feedback_id>", methods=["PATCH"])
+def patch_feedback_by_id(feedback_id: str) -> Response:
+    """
+    Updates a feedback by its ID
+
+    :param feedback_id: The ID of the feedback to update
+    """
+    feedback_client = get_collection(MongoCollections.FEEDBACK)
+    data = request.get_json()
+
+    try:
+        feedback = FeedbackPatch(**data)
+        feedback_client.update_one(
+            {"_id": ObjectId(feedback_id)},
+            {"$set": feedback.model_dump()},
+        )
+    except ValueError as e:
+        return response_wrapper(
+            code=HTTPStatus.BAD_REQUEST,
+            body={
+                "error": str(e),
+            },
+        )
+    return response_wrapper(
+        code=HTTPStatus.OK,
+        body={
+            "message": "Feedback updated",
+            "id": feedback_id,
+        },
     )
 
 

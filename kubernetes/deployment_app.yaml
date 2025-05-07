@@ -36,6 +36,8 @@ spec:
           env:
             - name: FEEDBACK_URL
               value: "http://feedback:5000/feedback"
+            - name: CLASSIFIER_URL
+              value: "https://fabio-kost--flask-server-flask-app.modal.run"
           livenessProbe:
             httpGet: 
               path: /healtz
