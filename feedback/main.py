@@ -62,6 +62,40 @@ def list_labels() -> Response:
     )
 
 
+@app.route("/feedback/labels", methods=["POST"])
+def post_labels() -> Response:
+    """
+    Adds a new label to the database
+    """
+    label_client = get_collection(MongoCollections.LABELS)
+    data = request.get_json()
+
+    try:
+        label = data["label"]
+        if label_client.find_one({"label": label}):
+            return response_wrapper(
+                code=HTTPStatus.BAD_REQUEST,
+                body={
+                    "error": "Label already exists",
+                },
+            )
+        label_client.insert_one({"label": label})
+    except ValueError as e:
+        return response_wrapper(
+            code=HTTPStatus.INTERNAL_SERVER_ERROR,
+            body={
+                "error": str(e),
+            },
+        )
+    return response_wrapper(
+        code=HTTPStatus.CREATED,
+        body={
+            "message": "Label created",
+            "label": label,
+        },
+    )
+
+
 @app.route("/feedback/feedback", methods=["POST"])
 def post_feedback() -> Response:
     """
