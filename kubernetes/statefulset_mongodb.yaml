@@ -1,0 +1,44 @@
+kind: StatefulSet
+apiVersion: apps/v1
+metadata:
+  name: mongodb
+  namespace: charre
+  labels:
+    app: mongodb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mongodb
+  serviceName: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: mongodb
+          image: docker.io/library/mongo:7.0.20
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: mongo
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              value: mongo
+            - name: MONGO_INITDB_DATABASE
+              value: charre
+          volumeMounts:
+            - name: mongodb-volume
+              mountPath: /data/db
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "mongod --shutdown"]
+      
+      volumes:
+        - name: mongodb-volume
+          persistentVolumeClaim:
+            claimName: mongodb-volume

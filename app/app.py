@@ -1,97 +1,113 @@
-import streamlit as st
-import requests
 import base64
+import os
 
-def connection_error(error_text: str):
-  st.error("Failed to fetch labels.")
-  st.write("Response text:", error_text)
-  temp = [
-        "Toyota",
-        "Honda",
-        "Ford",
-        "Chevrolet",
-        "Nissan",
-        "Volkswagen",
-        "Hyundai",
-        "Kia",
-        "Subaru",
-        "Mazda",
-        "BMW",
-        "Mercedes-Benz",
-        "Audi",
-        "Lexus",
-        "Porsche",
-      ]
-  return temp
+import requests
+import streamlit as st
+from streamlit.runtime.uploaded_file_manager import UploadedFile
 
+# Feedback URL has /feedback prefix already included for simplicity
+FEEDBACK_URL = os.getenv("FEEDBACK_URL", "http://localhost:5000/feedback")
+CLASSIIER_URL = os.getenv(
+    "CLASSIFIER_URL", "https://fabio-kost--flask-server-flask-app.modal.run"
+)
+PREDICT_URL = os.getenv("PREDICT_URL", "http://localhost:5001/predict")
+
+# Set up session state variables
+if "thumb_status" not in st.session_state:
+    st.session_state.thumb_status = None
+if "label" not in st.session_state:
+    st.session_state.label = None
+
+
+def connection_error(message: str | None) -> list[str]:
+    st.error("Failed to fetch labels.")
+    st.write("Response text:", message)
+    return []
+
+
+def classify_image(file: UploadedFile) -> None:
+    # TODO rest call to be defined (use POST CLASSIFIER_URL/<something>)
+    bytes_data = file.getvalue()  # noqa: F841
+
+    st.session_state.label = "TODO"  # Placeholder for the label
+    st.write(f"Predicted Brand: {st.session_state.label}")
+
+    try:
+      response = requests.post(PREDICT_URL, data=bytes_data, headers={'Content-Type': 'application/octet-stream'})
+      if response.status_code == 200:
+        st.success("Prediction successful!")
+        st.write("Predicted Brand: ", response.json()["predicted_brand"])
+      else:
+        st.error("Failed to predict brand.")
+        st.write("Response text:", response.text)
+    except requests.exceptions.RequestException as e:
+      st.error("Failed to predict brand.")
+      st.write("Error:", e)
+
+
+def submit_feedback(file: UploadedFile, correct_label: str, label: str) -> None:
+    try:
+        response = requests.post(
+            url=f"{FEEDBACK_URL}/feedback",
+            json={
+                "correct_label": correct_label,
+                "correct": st.session_state.thumb_status,
+                "label": label,
+                "image": base64.b64encode(file.getvalue()).decode("utf-8"),
+            },
+            timeout=20,
+        )
+
+        if response.status_code == 201:
+            st.success("Feedback submitted successfully!")
+        else:
+            st.error("Failed to submit feedback.")
+            st.write("Response text:", response.text)
+    except requests.exceptions.RequestException as e:
+        st.error("Failed to submit feedback.")
+        st.write("Error:", e)
+
+
+# Classifier Section
 st.title("charre: car brand classifier")
-
 st.header("Find your car brand")
 
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+st.button(
+    "Predict",
+    disabled=uploaded_file is None,
+    on_click=classify_image,
+    args=(uploaded_file,),
+)
 
-if uploaded_file is not None:
-  st.image(uploaded_file, caption="Uploaded Image")
-  if st.button("Predict"):
-    bytes_data = uploaded_file.getvalue()
-
-    # TODO rest call to be defined
-    st.write("Predicted Brand: <Result from model>")
-
+# Feedback Section
 st.header("Feedback")
 
-if "thumb_status" not in st.session_state:
-  st.session_state.thumb_status = None
-
 col1, col2 = st.columns(2)
-
 with col1:
-  if st.button("👍", key="thumbs_up"):
-    st.session_state.thumb_status = True
-
+    if st.button("👍", key="thumbs_up"):
+        st.session_state.thumb_status = True
 with col2:
-  if st.button("👎", key="thumbs_down"):
-    st.session_state.thumb_status = False
+    if st.button("👎", key="thumbs_down"):
+        st.session_state.thumb_status = False
 
 try:
-    url = "http://localhost:5000/labels"
-    response = requests.get(url)
+    response = requests.get(f"{FEEDBACK_URL}/labels", timeout=20)
     print(response.json())
-    list_brands = []
     if response.status_code == 200:
         list_brands = response.json()["labels"]
     else:
-        list_brands = connection_error(response.text)     
+        list_brands = connection_error(response.text)
 except requests.exceptions.RequestException as e:
-  list_brands = connection_error(e.strerror)
+    list_brands = connection_error(e.strerror)
 
 if st.session_state.thumb_status is None or uploaded_file is None:
-  st.warning("Please provide image and feedback before submitting.")
+    st.warning("Please provide image and feedback before submitting.")
 else:
-
-  selected_brand = st.selectbox("What brand was the car?", list_brands, index=None)
-
-  if st.button("Submit Feedback") and selected_brand:
-    url = "http://localhost:5000/feedback"
-    bytes_data = uploaded_file.getvalue()
-
-    base64_image = base64.b64encode(bytes_data).decode("utf-8")
-
-    payload = {
-      "correct_label": selected_brand,
-      "correct": st.session_state.thumb_status,
-      "label": "TODO",
-      "image": base64_image,
-    }
-    try:
-      response = requests.post(url, json=payload)
-
-      if response.status_code == 201:
-        st.success("Feedback submitted successfully!")
-      else:
-        st.error("Failed to submit feedback.")
-        st.write("Response text:", response.text)
-    except requests.exceptions.RequestException as e:
-      st.error("Failed to submit feedback.")
-      st.write("Error:", e)
-
+    correct_label = st.selectbox("What brand was the car?", list_brands, index=None)
+    st.button(
+        "Submit Feedback",
+        disabled=correct_label is None,
+        on_click=submit_feedback,
+        args=(uploaded_file, correct_label, st.session_state.label),
+    )

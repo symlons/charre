@@ -3,7 +3,7 @@ from pathlib import Path
 from pymongo.collection import Collection
 
 from feedback.models import Feedback
-from feedback.mongo import MongoCollections, get_client
+from feedback.mongo import MongoCollections, get_collection
 
 IMG_MOCK_DIR = Path(__file__).parent / "mock"
 
@@ -61,11 +61,11 @@ def mock_feedbacks(feedback_client: Collection) -> None:
 
 
 if __name__ == "__main__":
-    label_client = get_client(MongoCollections.LABELS)
+    label_client = get_collection(MongoCollections.LABELS)
     label_client.drop()
     mock_labels(label_client)
 
-    feedback_client = get_client(MongoCollections.FEEDBACK)
+    feedback_client = get_collection(MongoCollections.FEEDBACK)
     feedback_client.drop()
     mock_feedbacks(feedback_client)
 

@@ -1,0 +1,50 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: app
+  namespace: charre
+  labels:
+    component: app
+    app: charre
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: app
+      app: charre
+  template:
+    metadata:
+      labels:
+        component: app
+        app: charre
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/symlons/charre/app:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          ports:
+            - name: http
+              containerPort: 8501
+              protocol: TCP
+          env:
+            - name: FEEDBACK_URL
+              value: "http://feedback:5000/feedback"
+            - name: CLASSIFIER_URL
+              value: "https://fabio-kost--flask-server-flask-app.modal.run"
+          livenessProbe:
+            httpGet: 
+              path: /healtz
+              port: 8501
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3

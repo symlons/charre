@@ -1,5 +1,7 @@
 .vscode/
 .idea/
+secrets/
+images/
 
 # Data Directories
 sandbox/imgs/

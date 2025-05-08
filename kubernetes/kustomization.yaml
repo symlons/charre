@@ -1,0 +1,21 @@
+resources:
+  - deployment_app.yaml
+  - deployment_feedback.yaml
+  - ingress.yaml
+  - namespace.yaml
+  # - network_policies.yaml
+  - pvc_mongodb.yaml
+  - service_app.yaml
+  - service_feedback.yaml
+  - service_mongodb.yaml
+  - statefulset_mongodb.yaml
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+# On new/custom deployments adjust the tags here (not in deployments)!
+images:
+  - name: ghcr.io/symlons/charre/app
+    newTag: latest
+  - name: ghcr.io/symlons/charre/feedback
+    newTag: latest

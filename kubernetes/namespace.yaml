@@ -1,0 +1,6 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: charre
+  labels:
+    zhaw-module: mlops
