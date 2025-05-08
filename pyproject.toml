@@ -1,69 +1,72 @@
+[build-system]
+requires    = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "charre"
-version = "0.1.0"
-description = "MLOPS Project"
-readme = "README.md"
-requires-python = "<3.13,>=3.12"
+name            = "charre"
+version         = "0.1.0"
+description     = "MLOPS Project"
+readme          = "README.md"
+requires-python = ">=3.10"
+dependencies    = []
 
-dependencies = []
-
-[dependency-groups]
-api = [
-    "flask>=3.1.0",
-    "flask-cors>=5.0.1",
-    "gunicorn>=23.0.0",
-    "pydantic>=2.11.3",
-    "pymongo>=4.12.0",
+[project.optional-dependencies]
+api     = [
+  "flask>=3.1.0",
+  "flask-cors>=5.0.1",
+  "gunicorn>=23.0.0",
+  "pydantic>=2.11.3",
+  "pymongo>=4.12.0",
 ]
-app = [
-    "requests>=2.28.1",
-    "streamlit>=1.44.1",
+app     = [
+  "requests>=2.28.1",
+  "streamlit>=1.44.1",
 ]
-modal = []
+modal   = []
 sandbox = [
-    "kagglehub>=0.3.11",
-    "pillow>=11.1.0",
-    "torch>=2.6.0",
-    "transformers>=4.51.2",
+  "kagglehub>=0.3.11",
+  "pillow>=11.1.0",
+  "torch>=2.6.0",
+  "transformers>=4.51.2",
+]
+dev     = [
+  "mypy>=1.15.0",
+  "poethepoet>=0.33.1",
+  "ruff>=0.11.5",
 ]
 
-dev = [
-    "mypy>=1.15.0",
-    "poethepoet>=0.33.1",
-    "ruff>=0.11.5",
-]
+[tool.setuptools]
+# Treat feedback/ as the root of your importable code
+package-dir = {"" = "feedback"}
+
+[tool.setuptools.packages.find]
+where   = ["feedback"]
+include = ["*"]
 
 [tool.poe.tasks]
-format = {shell = "ruff format && ruff check --fix"}
-lint = {shell = "ruff check"}
-types = {shell = "mypy ."}
-all = {shell = "poe format && poe lint && poe types"}
+format = { shell = "ruff format && ruff check --fix" }
+lint   = { shell = "ruff check" }
+types  = { shell = "mypy ." }
+all    = { shell = "poe format && poe lint && poe types" }
 
 [tool.mypy]
-ignore_missing_imports = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-disallow_untyped_calls = true
-# exclude all except api as other devs might not use uv
-exclude = [".venv/", "tests/", "conftest.py", "modal/", "production/", "sandbox/"]
+ignore_missing_imports    = true
+disallow_untyped_defs     = true
+disallow_incomplete_defs  = true
+disallow_untyped_calls    = true
+exclude                   = [".venv/", "tests/", "conftest.py", "modal/", "production/", "sandbox/"]
 
 [tool.ruff]
-# exclude all except api as other devs might not use uv
 extend-exclude = ["modal/", "production/", "sandbox/"]
 
 [tool.ruff.lint]
 extend-ignore = ["E501"]
 select = [
-  # pycodestyle
-  "E",
-  # Pyflakes
-  "F",
-  # pyupgrade
-  "UP",
-  # flake8-bugbear
-  "B",
-  # flake8-simplify
-  "SIM",
-  # isort
-  "I",
+  "E",  # pycodestyle
+  "F",  # Pyflakes
+  "UP", # pyupgrade
+  "B",  # flake8-bugbear
+  "SIM",# flake8-simplify
+  "I",  # isort
 ]
+

@@ -1,74 +1,75 @@
 import modal
+from io import BytesIO
+from flask import Flask, request, jsonify
+from PIL import Image as PILImage
 
 volume = modal.Volume.from_name("test_data", create_if_missing=True)
 
 app = modal.App(
-  "flask-server", image=modal.Image.debian_slim().pip_install("flask", "torch")
+  name="flask-server",
+  image=modal.Image.debian_slim().pip_install("flask", "torch", "Pillow"),
 )
 
-gpu = "T4"
 slim_torch = (
   modal.Image.debian_slim(python_version="3.10")
-  .pip_install("torch", "torchvision", "Pillow")
+  .pip_install("torch", "torchvision", "Pillow", "transformers", "fastapi", "flask")
   .add_local_python_source("models")
 )
 
-
-@app.cls(gpu=gpu, image=slim_torch, volumes={"/data": volume})
+@app.cls(gpu="T4", image=slim_torch, volumes={"/data": volume})
 class Model:
   @modal.enter()
   def enter(self):
-    import torchvision.transforms as transforms
-    from torchvision import models
-    from torchvision.models import ResNet50_Weights
+    import torch
+    from transformers import ViTImageProcessor, ViTForImageClassification
 
-    self.transform = transforms.Compose(
-      [
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-      ]
+    model_id = "dima806/car_brands_image_detection"
+    self.processor = ViTImageProcessor.from_pretrained(model_id)
+    self.model = ViTForImageClassification.from_pretrained(
+      model_id,
+      use_safetensors=True,
+      trust_remote_code=True,
     )
-
-    self.model = models.resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)
     self.model.to("cuda")
 
   @modal.method()
-  def inference(self):
+  def inference(self, image):
     import torch
-    from PIL import Image as open_image
+    import torch.nn.functional as F
 
-    image = "/tycan.jpg"
-    image_path = "/data" + image
-    image = open_image.open(image_path).convert("RGB")
-    image_tensor = self.transform(image).unsqueeze(0).to("cuda")
-
+    inputs = self.processor(images=image, return_tensors="pt").to("cuda")
     with torch.no_grad():
-      output = self.model(image_tensor)
-      _, predicted_class = torch.max(output, 1)
-
-      print(f"Predicted Class: {predicted_class.item()}")
-    return predicted_class.detach().cpu().tolist()
-
+      outputs = self.model(**inputs)
+      logits = outputs.logits
+      probs = F.softmax(logits, dim=1)
+      max_val, max_idx = torch.max(probs, dim=1)
+      label = self.model.config.id2label[max_idx.item()].lower().strip()
+      conf = round(max_val.item(), 2)
+    return label, conf
 
 @app.function(scaledown_window=3)
 @modal.wsgi_app()
 def flask_app():
-  from flask import Flask, request
-
   web_app = Flask(__name__)
 
   @web_app.get("/")
   def home():
     return "Testing Flask server"
 
-  @web_app.post("/test")
-  def foo():
-    return request.json
-
-  @web_app.get("/model_endpoint")
+  @web_app.route("/model_endpoint", methods=["POST"])
   def model_endpoint():
-    return Model().inference.remote()
+    if "image" not in request.files:
+      return jsonify({"error": "No image uploaded"}), 400
+
+    file = request.files["image"]
+    try:
+      img = PILImage.open(file.stream).convert("RGB")
+    except Exception as e:
+      return jsonify({"error": f"Invalid image file: {str(e)}"}), 400
+
+    m = Model()
+    label, conf = m.inference.remote(img)
+    return jsonify({"predicted_class": label, "confidence": conf})
 
   return web_app
+

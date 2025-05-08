@@ -36,7 +36,7 @@ spec:
               protocol: TCP
           env:
             - name: FEEDBACK_URL
-              value: "http://feedback:5000/feedback"
+              value: "http://mlstatstracker.org/charre/feedback"
             - name: CLASSIFIER_URL
               value: "https://fabio-kost--flask-server-flask-app.modal.run"
           livenessProbe:
@@ -188,8 +188,6 @@ spec:
 
     - match: Host(`mlstatstracker.org`) && PathPrefix(`/app`)
       kind: Rule
-      middlewares:
-        - name: strip-app
       services:
         - name: app
           port: 8501
