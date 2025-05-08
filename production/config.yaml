@@ -1,3 +1,71 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: app
+  namespace: losstracker
+
+  labels:
+    component: app
+    app: charre
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: app
+      app: charre
+  template:
+    metadata:
+      labels:
+        component: app
+        app: charre
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/symlons/charre/app:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          ports:
+            - name: http
+              containerPort: 8501
+              protocol: TCP
+          env:
+            - name: FEEDBACK_URL
+              value: "http://feedback:5000/feedback"
+            - name: CLASSIFIER_URL
+              value: "https://fabio-kost--flask-server-flask-app.modal.run"
+          livenessProbe:
+            httpGet: 
+              path: /healtz
+              port: 8501
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: app
+  namespace: losstracker
+  labels:
+    component: app
+    app: charre
+spec:
+  ports:
+    - name: http
+      port: 8501
+      targetPort: 8501
+  selector:
+    component: app
+    app: charre
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -60,8 +128,6 @@ spec:
             timeoutSeconds: 5
             successThreshold: 1
             failureThreshold: 3
-      # imagePullSecrets:
-      #   - name: gitlabregcred
 ---
 apiVersion: v1
 kind: Service
@@ -76,44 +142,36 @@ spec:
       port: 5000
       targetPort: 5000
   type: ClusterIP
+
 ---
-# Middleware to rewrite /api paths
+# 1) Middleware to strip "/app" or "/charre"
 apiVersion: traefik.containo.us/v1alpha1
 kind: Middleware
 metadata:
-  name: charreapi
+  name: strip-charre
   namespace: losstracker
 spec:
-  replacePathRegex:
-    regex: "^/charre/(.*)"
-    replacement: "/$1"
+  stripPrefix:
+    prefixes:
+      - /charre
+
 ---
-# Ingress for the Client  /charre
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: traefik.containo.us/v1alpha1
+kind: Middleware
 metadata:
-  name: charre-ingress
+  name: strip-app
   namespace: losstracker
-  annotations:
-    traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
-  ingressClassName: traefik
-  rules:
-    - host: mlstatstracker.org
-      http:
-        paths:
-          - path: /charre
-            pathType: Prefix
-            backend:
-              service:
-                name: charre-server 
-                port:
-                  number: 5000
+  stripPrefix:
+    prefixes:
+      - /app
+
 ---
+# 2) Single IngressRoute that handles both routes
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
 metadata:
-  name: losstracker-api
+  name: losstracker-apps
   namespace: losstracker
 spec:
   entryPoints:
@@ -122,8 +180,16 @@ spec:
   routes:
     - match: Host(`mlstatstracker.org`) && PathPrefix(`/charre`)
       kind: Rule
-      services:
-        - name: charre-server 
-          port: 5000
       middlewares:
-        - name: charreapi # Reference to the middleware
+        - name: strip-charre
+      services:
+        - name: charre-server
+          port: 5000
+
+    - match: Host(`mlstatstracker.org`) && PathPrefix(`/app`)
+      kind: Rule
+      middlewares:
+        - name: strip-app
+      services:
+        - name: app
+          port: 8501
