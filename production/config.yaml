@@ -15,13 +15,53 @@ spec:
         app: charre-server 
     spec:
       containers:
-        - image: registry.gitlab.com/fabio.kost/testd/feedback-api:latest
+        - name: charre-server
+          image: ghcr.io/symlons/charre/feedback:latest
           imagePullPolicy: Always
-          name: charre-server
           ports:
-          - containerPort: 5001
-      imagePullSecrets:
-        - name: gitlabregcred
+            - containerPort: 5000
+              name: http
+              protocol: TCP
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+          env:
+            - name: MONGO_HOST
+              value: 192.168.123.192
+            - name: MONGO_PORT
+              value: "27017"
+            - name: MONGO_USERNAME
+              value: ""
+            - name: MONGO_PASSWORD
+              value: ""
+            - name: MONGO_DB
+              value: test
+          livenessProbe:
+            httpGet:
+              path: feedback/liveness
+              port: 5000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: feedback/readiness
+              port: 5000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+      # imagePullSecrets:
+      #   - name: gitlabregcred
 ---
 apiVersion: v1
 kind: Service
@@ -33,10 +73,9 @@ spec:
     app: charre-server 
   ports:
     - protocol: TCP
-      port: 5001
-      targetPort: 5001
+      port: 5000
+      targetPort: 5000
   type: ClusterIP
-
 ---
 # Middleware to rewrite /api paths
 apiVersion: traefik.containo.us/v1alpha1
@@ -69,7 +108,7 @@ spec:
               service:
                 name: charre-server 
                 port:
-                  number: 5001
+                  number: 5000
 ---
 apiVersion: traefik.containo.us/v1alpha1
 kind: IngressRoute
@@ -85,6 +124,6 @@ spec:
       kind: Rule
       services:
         - name: charre-server 
-          port: 5001
+          port: 5000
       middlewares:
         - name: charreapi # Reference to the middleware
