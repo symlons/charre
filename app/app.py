@@ -6,11 +6,10 @@ import streamlit as st
 from streamlit.runtime.uploaded_file_manager import UploadedFile
 
 # Feedback URL has /feedback prefix already included for simplicity
-FEEDBACK_URL = os.getenv("FEEDBACK_URL", "http://localhost:5000/feedback")
-CLASSIIER_URL = os.getenv(
+FEEDBACK_URL = os.getenv("FEEDBACK_URL", "http://localhost:5000/feedback/")
+CLASSIFIER_URL = os.getenv(
     "CLASSIFIER_URL", "https://fabio-kost--flask-server-flask-app.modal.run"
 )
-PREDICT_URL = os.getenv("PREDICT_URL", "http://localhost:5001/predict")
 
 # Set up session state variables
 if "thumb_status" not in st.session_state:
@@ -33,7 +32,7 @@ def classify_image(file: UploadedFile) -> None:
     st.write(f"Predicted Brand: {st.session_state.label}")
 
     try:
-      response = requests.post(PREDICT_URL, data=bytes_data, headers={'Content-Type': 'application/octet-stream'})
+      response = requests.post(CLASSIFIER_URL, data=bytes_data, headers={'Content-Type': 'application/octet-stream'})
       if response.status_code == 200:
         st.success("Prediction successful!")
         st.write("Predicted Brand: ", response.json()["predicted_brand"])
