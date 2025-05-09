@@ -1,0 +1,186 @@
+openapi: 3.1.0
+info:
+  title: Feedback API
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5000
+
+paths:
+  /feedback/readiness:
+    get:
+      summary: Readiness check
+      responses:
+        '200':
+          description: OK
+        '500':
+          description: MongoDB connection error
+
+  /feedback/liveness:
+    get:
+      summary: Liveness check
+      responses:
+        '200':
+          description: OK
+
+  /feedback/labels:
+    get:
+      summary: List all unique labels
+      responses:
+        '200':
+          description: List of labels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  labels:
+                    type: array
+                    items:
+                      type: string
+                  count:
+                    type: integer
+    post:
+      summary: Add a new label
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [label]
+              properties:
+                label:
+                  type: string
+      responses:
+        '201':
+          description: Label created
+        '400':
+          description: Label already exists
+        '500':
+          description: Server error
+
+  /feedback/feedback:
+    post:
+      summary: Add a new feedback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [image, label, correct, correct_label]
+              properties:
+                image:
+                  type: string
+                  format: byte
+                label:
+                  type: string
+                correct:
+                  type: boolean
+                correct_label:
+                  type: string
+                trained:
+                  type: boolean
+      responses:
+        '201':
+          description: Feedback received
+        '400':
+          description: Bad request
+
+    get:
+      summary: List all feedback
+      responses:
+        '200':
+          description: List of feedback
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  feedback:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FeedbackList'
+                  count:
+                    type: integer
+        '500':
+          description: Server error
+
+  /feedback/feedback/{feedback_id}:
+    get:
+      summary: Get feedback by ID
+      parameters:
+        - in: path
+          name: feedback_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Feedback found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+        '404':
+          description: Not found
+        '500':
+          description: Server error
+
+    patch:
+      summary: Patch feedback by ID
+      parameters:
+        - in: path
+          name: feedback_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackPatch'
+      responses:
+        '200':
+          description: Feedback updated
+        '400':
+          description: Bad request
+
+components:
+  schemas:
+    Feedback:
+      type: object
+      properties:
+        image:
+          type: string
+          format: byte
+        label:
+          type: string
+        correct:
+          type: boolean
+        correct_label:
+          type: string
+        trained:
+          type: boolean
+
+    FeedbackPatch:
+      type: object
+      properties:
+        trained:
+          type: boolean
+      required:
+        - trained
+
+    FeedbackList:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        correct:
+          type: boolean
+        correct_label:
+          type: string
