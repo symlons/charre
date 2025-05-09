@@ -47,7 +47,7 @@ class Model:
       conf = round(max_val.item(), 2)
     return label, conf
 
-@app.function(scaledown_window=3)
+@app.function(scaledown_window=30)
 @modal.wsgi_app()
 def flask_app():
   web_app = Flask(__name__)
@@ -72,4 +72,3 @@ def flask_app():
     return jsonify({"predicted_class": label, "confidence": conf})
 
   return web_app
-
