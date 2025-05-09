@@ -108,6 +108,7 @@ def post_feedback() -> Response:
         data["image"] = b64decode(data["image"])
         feedback = Feedback(**data)
         feedback.label = feedback.label.lower().strip()
+        feedback.trained = False
         result = feedback_client.insert_one(feedback.model_dump())
     except ValueError as e:
         return response_wrapper(
