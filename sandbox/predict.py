@@ -11,7 +11,6 @@ def predict(img: PILImage) -> tuple[str, float]:
     :return: Name of the car brand
     """
     # load model
-    # TODO implement loading of fine tuned weights instead of huggingface model
     model_id = "dima806/car_brands_image_detection"
     processor = ViTImageProcessor.from_pretrained(model_id)
     model = ViTForImageClassification.from_pretrained(
